@@ -1,0 +1,35 @@
+name: file-converter-mcp
+displayName: "FileForge — File Converter MCP"
+description: >
+  The open-source ilovepdf.com for AI agents. 83 file conversion tools across
+  9 categories: PDF (merge/split/compress/rotate/protect/OCR), images
+  (PNG/JPG/WebP/HEIC/GIF), documents (DOCX/HTML/Markdown/PPTX/XLSX), data
+  formats (JSON/YAML/CSV/XML/Parquet/SQLite), archives (ZIP/TAR/7Z), and
+  e-books (EPUB/RTF). No API keys. Runs 100% locally.
+version: "2.0.0"
+license: MIT
+homepage: https://github.com/Nidhishpajni/file-converter-mcp
+runtime: python
+categories:
+  - files
+  - pdf
+  - productivity
+  - documents
+keywords:
+  - pdf
+  - file-converter
+  - ilovepdf
+  - ocr
+  - image-conversion
+  - document-conversion
+  - data-conversion
+  - mcp-server
+startCommand:
+  type: stdio
+  command: python
+  args:
+    - file_converter_mcp_server.py
+configSchema:
+  type: object
+  properties: {}
+  required: []

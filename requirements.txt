@@ -1,0 +1,47 @@
+# Core MCP framework
+mcp>=1.26.0
+
+# PDF processing
+pymupdf>=1.24.0
+pikepdf>=8.0.0
+pdfplumber>=0.11.0
+reportlab>=4.0.0
+img2pdf>=0.5.0
+docx2pdf>=0.1.8
+
+# Office formats
+python-docx>=1.2.0
+python-pptx>=1.0.0
+openpyxl>=3.1.0
+
+# OCR (EasyOCR pulls in torch automatically)
+easyocr>=1.7.0
+
+# Image processing
+Pillow>=12.0.0
+
+# Data formats
+pandas>=2.3.0
+PyYAML>=6.0.0
+toml>=0.10.0
+lxml>=5.0.0
+
+# Web UI
+fastapi>=0.110.0
+uvicorn>=0.29.0
+python-multipart>=0.0.9
+
+# HTML processing
+beautifulsoup4>=4.12.0
+html2text>=2020.1.16
+markdown-it-py>=3.0.0
+
+# Archive support
+py7zr>=0.20.0
+
+# Optional extras (uncomment to install):
+# weasyprint>=61.0      # Better HTML→PDF (has GTK dependency on Windows)
+# ebooklib>=0.18        # E-book tools
+# striprtf>=0.0.26      # RTF tools
+# pyarrow>=14.0.0       # Parquet support
+# pillow-heif>=0.13.0   # HEIC/HEIF support
