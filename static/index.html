@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FileForge — Convert Anything</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #09090f;
+  --surface: #0f1018;
+  --surface2: #14161f;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8e9f0;
+  --muted: #6b7280;
+  --accent: #7c6bff;
+  --accent-glow: rgba(124,107,255,0.35);
+
+  --pdf:      #ef4444;
+  --pdf-glow: rgba(239,68,68,0.3);
+  --export:   #3b82f6;
+  --export-glow: rgba(59,130,246,0.3);
+  --import:   #22c55e;
+  --import-glow: rgba(34,197,94,0.3);
+  --ocr:      #a855f7;
+  --ocr-glow: rgba(168,85,247,0.3);
+  --image:    #14b8a6;
+  --image-glow: rgba(20,184,166,0.3);
+  --docs:     #6366f1;
+  --docs-glow: rgba(99,102,241,0.3);
+  --data:     #f59e0b;
+  --data-glow: rgba(245,158,11,0.3);
+  --arch:     #94a3b8;
+  --arch-glow: rgba(148,163,184,0.3);
+  --ebook:    #ec4899;
+  --ebook-glow: rgba(236,72,153,0.3);
+}
+
+[data-theme="light"] {
+  --bg: #f4f4f8;
+  --surface: #ffffff;
+  --surface2: #f0f0f6;
+  --border: rgba(0,0,0,0.08);
+  --text: #111118;
+  --muted: #6b7280;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(9,9,15,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+[data-theme="light"] header { background: rgba(244,244,248,0.85); }
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #7c6bff 0%, #c084fc 60%, #fb7185 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-right { display: flex; align-items: center; gap: 1rem; }
+
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+}
+.theme-toggle:hover { background: var(--surface); transform: scale(1.05); }
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  padding: 4rem 2rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 400px;
+  background: radial-gradient(ellipse, rgba(124,107,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+.hero h1 span {
+  background: linear-gradient(135deg, #7c6bff, #c084fc, #fb7185);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero p {
+  color: var(--muted);
+  font-size: 1.1rem;
+  font-weight: 300;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* ── CATEGORY TABS ── */
+.tabs-wrap {
+  padding: 0 2rem;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs-wrap::-webkit-scrollbar { display: none; }
+
+.tabs {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.tab {
+  padding: 0.85rem 1.2rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--cat-color, var(--accent)); }
+
+/* ── TOOL GRID ── */
+.grid-section { padding: 2rem; }
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.4rem 1.2rem 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.tool-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--cat-color, var(--accent));
+  border-radius: 14px 14px 0 0;
+  opacity: 0.7;
+}
+.tool-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px var(--cat-glow, var(--accent-glow));
+  border-color: var(--cat-color, var(--accent));
+}
+.tool-card:hover::before { opacity: 1; }
+
+.tool-card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 0.7rem;
+  display: block;
+}
+.tool-card h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+}
+.tool-card p {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ── CONVERSION MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(9,9,15,0.92);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 100%; max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.25s;
+  position: relative;
+}
+.modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+.modal-close {
+  position: absolute; top: 1.2rem; right: 1.2rem;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+.modal-close:hover { background: #ef444420; color: #ef4444; }
+
+.modal-header { margin-bottom: 1.5rem; padding-right: 2rem; }
+.modal-header .cat-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.72rem; font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0.6rem;
+  background: var(--cat-color-10, rgba(124,107,255,0.1));
+  color: var(--cat-color, var(--accent));
+}
+.modal-header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.3rem;
+}
+.modal-header p { color: var(--muted); font-size: 0.9rem; }
+
+/* ── DROP ZONE ── */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  margin-bottom: 1.2rem;
+  position: relative;
+}
+.drop-zone.drag-over {
+  border-color: var(--cat-color, var(--accent));
+  background: var(--cat-color-10, rgba(124,107,255,0.06));
+  box-shadow: 0 0 30px var(--cat-glow, var(--accent-glow));
+}
+.drop-zone input[type="file"] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-icon { font-size: 2.2rem; margin-bottom: 0.8rem; display: block; }
+.drop-zone h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+.drop-zone p { color: var(--muted); font-size: 0.8rem; }
+
+.files-list { margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.file-chip {
+  display: flex; align-items: center; gap: 0.7rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.82rem;
+}
+.file-chip .file-icon { font-size: 1.1rem; flex-shrink: 0; }
+.file-chip .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-chip .file-size { color: var(--muted); font-size: 0.75rem; flex-shrink: 0; }
+.file-chip .remove-file {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 1rem; line-height: 1; padding: 0; flex-shrink: 0;
+  transition: color 0.2s;
+}
+.file-chip .remove-file:hover { color: #ef4444; }
+
+/* ── OPTIONS ── */
+.options-section { margin-bottom: 1.2rem; }
+.options-section h4 {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+}
+.option-row { margin-bottom: 0.7rem; }
+.option-row label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  color: var(--text);
+}
+.option-row input[type="text"],
+.option-row input[type="number"],
+.option-row input[type="password"],
+.option-row select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.85rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s;
+  appearance: none;
+}
+.option-row input:focus, .option-row select:focus {
+  outline: none;
+  border-color: var(--cat-color, var(--accent));
+}
+.option-row select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  padding-right: 2rem;
+}
+.checkbox-row {
+  display: flex; align-items: center; gap: 0.7rem;
+  cursor: pointer;
+}
+.checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--cat-color, var(--accent)); cursor: pointer; }
+.checkbox-row span { font-size: 0.85rem; }
+
+/* ── CONVERT BUTTON ── */
+.convert-btn {
+  width: 100%;
+  padding: 0.95rem;
+  border-radius: 12px;
+  border: none;
+  background: var(--cat-color, var(--accent));
+  color: white;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px var(--cat-glow, var(--accent-glow));
+  position: relative;
+  overflow: hidden;
+}
+.convert-btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  transform: translateX(-100%);
+}
+.convert-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 30px var(--cat-glow, var(--accent-glow)); }
+.convert-btn:hover::after { animation: shimmer 0.8s ease; }
+.convert-btn:active { transform: translateY(0); }
+.convert-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* ── PROGRESS ── */
+.progress-wrap { margin-bottom: 1.2rem; }
+.progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem;
+}
+.progress-bar-bg {
+  background: var(--surface2);
+  border-radius: 99px;
+  height: 6px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--cat-color, var(--accent));
+  width: 0%;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 8px var(--cat-glow, var(--accent-glow));
+}
+.progress-bar.indeterminate {
+  width: 40%;
+  animation: progress-slide 1.4s ease-in-out infinite;
+}
+@keyframes progress-slide {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ── RESULT ── */
+.result-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.4rem;
+  margin-bottom: 1rem;
+}
+.result-box.success { border-color: #22c55e40; }
+.result-box.error { border-color: #ef444440; background: #ef444408; }
+
+.result-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.result-box.success .result-title { color: #22c55e; }
+.result-box.error .result-title { color: #ef4444; }
+.result-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.6; }
+
+.download-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: none;
+  background: #22c55e;
+  color: white;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 4px 20px rgba(34,197,94,0.25);
+}
+.download-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.json-result {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.75rem;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  color: var(--muted);
+  overflow-x: auto;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre;
+  margin-top: 0.5rem;
+}
+
+/* ── STATES ── */
+.hidden { display: none !important; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .hero { padding: 2.5rem 1rem 2rem; }
+  .hero h1 { font-size: 1.9rem; }
+  .grid-section { padding: 1rem; }
+  .tools-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.7rem; }
+  .modal { padding: 1.4rem; }
+}
+
+/* ── CATEGORY COLORS applied via JS ── */
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚡ FileForge</div>
+  <div class="header-right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Convert <span>Anything</span>,<br>Instantly.</h1>
+  <p>90+ conversion tools for PDF, images, documents, data, archives, and e-books — all in your browser.</p>
+</section>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs"></div>
+</div>
+
+<div class="grid-section">
+  <div class="tools-grid" id="toolsGrid"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <div class="modal-header">
+      <div class="cat-badge" id="catBadge"></div>
+      <h2 id="modalTitle"></h2>
+      <p id="modalDesc"></p>
+    </div>
+
+    <!-- Upload -->
+    <div id="uploadSection">
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" onchange="handleFiles(this.files)" multiple>
+        <span class="drop-icon">📂</span>
+        <h3>Drop files here</h3>
+        <p id="acceptHint">or click to browse</p>
+      </div>
+      <div class="files-list hidden" id="filesList"></div>
+    </div>
+
+    <!-- Options -->
+    <div class="options-section hidden" id="optionsSection">
+      <h4>Options</h4>
+      <div id="optionsForm"></div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap hidden" id="progressWrap">
+      <div class="progress-label">
+        <span id="progressText">Converting…</span>
+        <span id="progressPct"></span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar indeterminate" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="resultSection" class="hidden"></div>
+
+    <!-- CTA -->
+    <button class="convert-btn" id="convertBtn" onclick="runConvert()" disabled>
+      Convert
+    </button>
+  </div>
+</div>
+
+<script>
+// ── DATA (fetched from API) ────────────────────────────────────────────
+let CATEGORIES = [];
+let currentTool = null;
+let selectedFiles = [];
+
+const CAT_IDS = ['pdf','pdf_export','pdf_import','ocr','image','documents','data','archives','ebooks'];
+const CAT_COLORS = {
+  pdf: '#ef4444', pdf_export: '#3b82f6', pdf_import: '#22c55e',
+  ocr: '#a855f7', image: '#14b8a6', documents: '#6366f1',
+  data: '#f59e0b', archives: '#94a3b8', ebooks: '#ec4899',
+};
+const CAT_GLOWS = {
+  pdf: 'rgba(239,68,68,0.3)', pdf_export: 'rgba(59,130,246,0.3)', pdf_import: 'rgba(34,197,94,0.3)',
+  ocr: 'rgba(168,85,247,0.3)', image: 'rgba(20,184,166,0.3)', documents: 'rgba(99,102,241,0.3)',
+  data: 'rgba(245,158,11,0.3)', archives: 'rgba(148,163,184,0.3)', ebooks: 'rgba(236,72,153,0.3)',
+};
+
+const TOOL_ICONS = {
+  merge_pdfs:'🔗', split_pdf:'✂️', compress_pdf:'🗃️', rotate_pdf:'🔄', protect_pdf:'🔒',
+  unlock_pdf:'🔓', add_watermark:'💧', add_page_numbers:'🔢', organize_pdf:'📋', repair_pdf:'🔧', get_pdf_info:'ℹ️',
+  pdf_to_images:'🖼️', pdf_to_word:'📝', pdf_to_excel:'📊', pdf_to_pptx:'📑', pdf_to_html:'🌐', pdf_to_text:'📃', pdf_to_markdown:'⬇️',
+  images_to_pdf:'📄', word_to_pdf:'📄', excel_to_pdf:'📄', pptx_to_pdf:'📄', html_to_pdf:'📄',
+  ocr_pdf:'🔍', ocr_image:'👁️', image_to_word:'📝', image_to_html:'🌐', image_to_markdown:'⬇️',
+  convert_image:'🎨', get_image_info:'ℹ️', gif_to_frames:'🎞️', frames_to_gif:'🎬', image_to_base64:'🔤', heic_to_image:'📸',
+  docx_to_html:'🌐', docx_to_markdown:'⬇️', docx_to_txt:'📃', html_to_markdown:'⬇️', html_to_txt:'📃', html_to_docx:'📝', html_to_xlsx:'📊',
+  markdown_to_html:'🌐', markdown_to_pdf:'📄', markdown_to_docx:'📝', markdown_to_txt:'📃',
+  txt_to_pdf:'📄', txt_to_docx:'📝', txt_to_html:'🌐',
+  pptx_to_txt:'📃', pptx_to_html:'🌐', pptx_to_images:'🖼️',
+  xlsx_to_html:'🌐', xlsx_to_markdown:'⬇️', xlsx_to_docx:'📝',
+  convert_data:'⚙️', xml_to_json:'{ }', json_to_xml:'🔀', xml_to_csv:'📊', ini_to_json:'{ }', ini_to_yaml:'📋',
+  env_to_json:'{ }', csv_to_markdown:'⬇️', html_table_to_csv:'📊', jsonl_to_json:'[ ]', json_to_jsonl:'📋',
+  sqlite_to_csv:'📊', sqlite_to_json:'{ }', sqlite_to_xlsx:'📊', parquet_to_csv:'📊', parquet_to_json:'{ }', csv_to_parquet:'🗃️',
+  zip_files:'📦', unzip_files:'📭', tar_files:'📦', untar_files:'📭', create_7z:'📦', extract_7z:'📭',
+  epub_to_txt:'📃', epub_to_html:'🌐', epub_to_markdown:'⬇️', epub_to_docx:'📝', epub_to_pdf:'📄',
+  rtf_to_txt:'📃', rtf_to_html:'🌐',
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch('/api/tools');
+    const data = await r.json();
+    CATEGORIES = data.categories;
+  } catch(e) {
+    console.warn('Could not fetch tools from API, using empty list');
+    CATEGORIES = [];
+  }
+  renderTabs();
+  renderGrid(CATEGORIES[0]?.id || '');
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function renderTabs() {
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = CATEGORIES.map((cat, i) => `
+    <button class="tab ${i === 0 ? 'active' : ''}"
+      style="--cat-color:${CAT_COLORS[cat.id] || '#7c6bff'}"
+      onclick="switchTab('${cat.id}', this)">
+      <span>${cat.icon}</span> ${cat.name}
+    </button>
+  `).join('');
+}
+
+function switchTab(catId, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid(catId);
+}
+
+// ── GRID ──────────────────────────────────────────────────────────────────
+function renderGrid(catId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (!cat) return;
+  const grid = document.getElementById('toolsGrid');
+  const color = CAT_COLORS[catId] || '#7c6bff';
+  const glow = CAT_GLOWS[catId] || 'rgba(124,107,255,0.3)';
+  grid.innerHTML = cat.tools.map(tool => `
+    <div class="tool-card"
+      style="--cat-color:${color}; --cat-glow:${glow}"
+      onclick="openModal('${catId}', '${tool.id}')">
+      <span class="tool-card-icon">${TOOL_ICONS[tool.id] || '🔄'}</span>
+      <h3>${tool.name}</h3>
+      <p>${tool.description}</p>
+    </div>
+  `).join('');
+}
+
+// ── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(catId, toolId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const tool = cat?.tools.find(t => t.id === toolId);
+  if (!tool) return;
+
+  currentTool = { ...tool, catId };
+  selectedFiles = [];
+
+  const color = CAT_COLORS[catId] || '#7c6bff';
+  const glow = CAT_GLOWS[catId] || 'rgba(124,107,255,0.3)';
+  const colorAlpha = color + '1a';
+
+  const modal = document.getElementById('modal');
+  modal.style.setProperty('--cat-color', color);
+  modal.style.setProperty('--cat-glow', glow);
+  modal.style.setProperty('--cat-color-10', colorAlpha);
+
+  document.getElementById('catBadge').textContent = `${cat.icon} ${cat.name}`;
+  document.getElementById('catBadge').style.cssText = `background:${colorAlpha};color:${color}`;
+  document.getElementById('modalTitle').textContent = tool.name;
+  document.getElementById('modalDesc').textContent = tool.description;
+
+  const fi = document.getElementById('fileInput');
+  fi.multiple = !!tool.multi;
+  const accepts = tool.accepts || [];
+  fi.accept = accepts.includes('*') ? '*' : accepts.join(',');
+  document.getElementById('acceptHint').textContent =
+    accepts.includes('*') ? 'Any file type' : `Accepts: ${accepts.join(', ')}`;
+
+  renderOptions(tool);
+
+  document.getElementById('filesList').innerHTML = '';
+  document.getElementById('filesList').classList.add('hidden');
+  document.getElementById('progressWrap').classList.add('hidden');
+  document.getElementById('resultSection').innerHTML = '';
+  document.getElementById('resultSection').classList.add('hidden');
+  document.getElementById('convertBtn').disabled = true;
+  document.getElementById('convertBtn').textContent = 'Convert';
+  document.getElementById('uploadSection').classList.remove('hidden');
+
+  const dz = document.getElementById('dropZone');
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag-over'); };
+  dz.ondragleave = () => dz.classList.remove('drag-over');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); };
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  selectedFiles = [];
+  currentTool = null;
+}
+
+// ── FILE HANDLING ──────────────────────────────────────────────────────────
+function handleFiles(fileList) {
+  const files = Array.from(fileList);
+  if (!currentTool.multi) {
+    selectedFiles = files.slice(0, 1);
+  } else {
+    selectedFiles = [...selectedFiles, ...files];
+  }
+  renderFilesList();
+  document.getElementById('convertBtn').disabled = selectedFiles.length === 0;
+}
+
+function removeFile(idx) {
+  selectedFiles.splice(idx, 1);
+  renderFilesList();
+  document.getElementById('convertBtn').disabled = selectedFiles.length === 0;
+}
+
+function renderFilesList() {
+  const list = document.getElementById('filesList');
+  if (selectedFiles.length === 0) { list.classList.add('hidden'); return; }
+  list.classList.remove('hidden');
+  list.innerHTML = selectedFiles.map((f, i) => `
+    <div class="file-chip">
+      <span class="file-icon">${getFileIcon(f.name)}</span>
+      <span class="file-name">${f.name}</span>
+      <span class="file-size">${formatSize(f.size)}</span>
+      <button class="remove-file" onclick="removeFile(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function getFileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  const map = { pdf:'📄', docx:'📝', doc:'📝', xlsx:'📊', xls:'📊', pptx:'📑', ppt:'📑',
+    html:'🌐', htm:'🌐', md:'⬇️', txt:'📃', csv:'📊', json:'{ }', xml:'🏷️', yaml:'📋', yml:'📋',
+    png:'🖼️', jpg:'🖼️', jpeg:'🖼️', gif:'🎞️', webp:'🖼️', bmp:'🖼️', heic:'📸', heif:'📸',
+    zip:'📦', tar:'📦', gz:'📦', '7z':'📦', epub:'📚', rtf:'📄', sqlite:'🗃️', db:'🗃️',
+    parquet:'📊', jsonl:'{ }', ini:'⚙️', env:'⚙️', toml:'⚙️' };
+  return map[ext] || '📎';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes/1024).toFixed(1)} KB`;
+  return `${(bytes/1048576).toFixed(1)} MB`;
+}
+
+// ── OPTIONS FORM ──────────────────────────────────────────────────────────
+function renderOptions(tool) {
+  const sec = document.getElementById('optionsSection');
+  const form = document.getElementById('optionsForm');
+  if (!tool.options || tool.options.length === 0) {
+    sec.classList.add('hidden');
+    return;
+  }
+  sec.classList.remove('hidden');
+  form.innerHTML = tool.options.map(opt => {
+    if (opt.type === 'checkbox') return `
+      <div class="option-row">
+        <label class="checkbox-row">
+          <input type="checkbox" name="${opt.name}" ${opt.default ? 'checked' : ''}>
+          <span>${opt.label}</span>
+        </label>
+      </div>`;
+    if (opt.type === 'select') return `
+      <div class="option-row">
+        <label>${opt.label}</label>
+        <select name="${opt.name}">
+          ${opt.options.map(o => `<option value="${o}" ${o === opt.default ? 'selected' : ''}>${o}</option>`).join('')}
+        </select>
+      </div>`;
+    return `
+      <div class="option-row">
+        <label>${opt.label}</label>
+        <input type="${opt.type}" name="${opt.name}" value="${opt.default || ''}" placeholder="${opt.default || ''}">
+      </div>`;
+  }).join('');
+}
+
+function collectOptions() {
+  const form = document.getElementById('optionsForm');
+  const opts = {};
+  for (const el of form.querySelectorAll('[name]')) {
+    if (el.type === 'checkbox') opts[el.name] = el.checked;
+    else if (el.value.trim() !== '') opts[el.name] = el.value.trim();
+  }
+  return opts;
+}
+
+// ── CONVERT ───────────────────────────────────────────────────────────────────
+async function runConvert() {
+  if (!currentTool || selectedFiles.length === 0) return;
+
+  const btn = document.getElementById('convertBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Converting…';
+
+  document.getElementById('uploadSection').classList.add('hidden');
+  document.getElementById('optionsSection').classList.add('hidden');
+  document.getElementById('resultSection').classList.add('hidden');
+  document.getElementById('resultSection').innerHTML = '';
+
+  const pw = document.getElementById('progressWrap');
+  pw.classList.remove('hidden');
+  document.getElementById('progressText').textContent = 'Converting…';
+
+  const opts = collectOptions();
+  const fd = new FormData();
+  fd.append('tool', currentTool.id);
+  fd.append('options', JSON.stringify(opts));
+  for (const f of selectedFiles) fd.append('files', f);
+
+  try {
+    const resp = await fetch('/api/convert', { method: 'POST', body: fd });
+    pw.classList.add('hidden');
+
+    const contentType = resp.headers.get('content-type') || '';
+
+    if (!resp.ok || contentType.includes('application/json')) {
+      const data = await resp.json();
+      showError(data.error || 'Conversion failed');
+      return;
+    }
+
+    const blob = await resp.blob();
+    const disp = resp.headers.get('content-disposition') || '';
+    let filename = 'converted_file';
+    const m = disp.match(/filename="?([^"]+)"?/);
+    if (m) filename = m[1];
+
+    const url = URL.createObjectURL(blob);
+    showSuccess(filename, blob.size, url, selectedFiles[0].size);
+
+  } catch(e) {
+    pw.classList.add('hidden');
+    showError(e.message || 'Network error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Convert Again';
+    document.getElementById('uploadSection').classList.remove('hidden');
+    renderOptions(currentTool);
+  }
+}
+
+function showSuccess(filename, outBytes, url, inBytes) {
+  const sec = document.getElementById('resultSection');
+  sec.classList.remove('hidden');
+  const delta = inBytes - outBytes;
+  const pct = inBytes > 0 ? Math.round(Math.abs(delta) / inBytes * 100) : 0;
+  const change = delta > 0 ? `↓ ${pct}% smaller` : delta < 0 ? `↑ ${pct}% larger` : 'same size';
+
+  sec.innerHTML = `
+    <div class="result-box success">
+      <div class="result-title">✅ Done!</div>
+      <div class="result-meta">
+        ${filename}<br>
+        Output: ${formatSize(outBytes)} &nbsp;·&nbsp; ${change}
+      </div>
+      <a class="download-btn" href="${url}" download="${filename}">
+        ⬇️ Download ${filename}
+      </a>
+    </div>
+  `;
+  sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showError(msg) {
+  const sec = document.getElementById('resultSection');
+  sec.classList.remove('hidden');
+  sec.innerHTML = `
+    <div class="result-box error">
+      <div class="result-title">❌ Error</div>
+      <div class="result-meta">${msg}</div>
+    </div>
+  `;
+  document.getElementById('uploadSection').classList.remove('hidden');
+  const pw = document.getElementById('progressWrap');
+  pw.classList.add('hidden');
+  const btn = document.getElementById('convertBtn');
+  btn.disabled = selectedFiles.length === 0;
+  btn.textContent = 'Try Again';
+}
+
+// ── THEME ───────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isDark = !document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : '');
+  document.querySelector('.theme-toggle').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    setTimeout(() => {
+      const btn = document.querySelector('.theme-toggle');
+      if (btn) btn.textContent = '☀️';
+    }, 0);
+  }
+})();
+
+// ── START ──────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
